@@ -50,6 +50,7 @@ class MPCControllerWrapper:
         device: str = "cuda:0",
         robot_mass: float = 15.0,
         dt: float = 0.0025,
+        target_height: float = 0.35,
     ):
         """Initialize MPC controller wrapper.
         
@@ -58,11 +59,13 @@ class MPCControllerWrapper:
             device: PyTorch device for tensors
             robot_mass: Robot mass in kg
             dt: Control timestep in seconds
+            target_height: Target robot height in meters (default: 0.35)
         """
         self.num_envs = num_envs
         self.device = device
         self.robot_mass = robot_mass
         self.dt = dt
+        self.target_height = target_height
         
         if not MPC_AVAILABLE:
             raise RuntimeError(
@@ -156,7 +159,7 @@ class MPCControllerWrapper:
             state.robot_mass = self.robot_mass
             
             # Desired trajectory
-            state.root_pos_d = np.array([0.0, 0.0, 0.35])  # Target height
+            state.root_pos_d = np.array([0.0, 0.0, self.target_height])  # Target height
             state.root_euler_d = np.array([0.0, 0.0, state.root_euler[2]])  # Keep current yaw
             state.root_lin_vel_d = desired_vel_np[i]
             state.root_ang_vel_d = np.array([0.0, 0.0, desired_yaw_rate_np[i, 0]])

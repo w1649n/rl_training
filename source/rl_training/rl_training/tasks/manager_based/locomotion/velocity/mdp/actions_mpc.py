@@ -61,6 +61,13 @@ class MPCWeightsAction(ActionTerm):
         self.q_weight_bounds = cfg.q_weight_bounds
         self.r_weight_bounds = cfg.r_weight_bounds
         
+        # Validate R weight bounds (must be positive for log scale)
+        if cfg.r_weight_bounds[0] <= 0 or cfg.r_weight_bounds[1] <= 0:
+            raise ValueError(
+                f"R weight bounds must be positive for logarithmic scaling. "
+                f"Got: {cfg.r_weight_bounds}"
+            )
+        
         # Precompute scaling constants for R weights (log scale)
         # R weights use log scale because they span multiple orders of magnitude (1e-7 to 1e-3)
         # Formula: r = exp((a+1)/2 * (log(r_max) - log(r_min)) + log(r_min))
