@@ -17,6 +17,17 @@ from .rough_env_cfg import DeeproboticsLite3RoughEnvCfg
 
 
 @configclass
+class RLMPCActionsCfg:
+    """Action specifications for RL-MPC."""
+
+    mpc_weights = mdp.MPCWeightsActionCfg(
+        asset_name="robot",
+        q_weight_bounds=(0.0, 500.0),
+        r_weight_bounds=(1e-7, 1e-3),
+    )
+
+
+@configclass
 class RLMPCObservationsCfg:
     """Observation specifications for RL-MPC."""
 
@@ -136,7 +147,7 @@ class DeeproboticsLite3RLMPCEnvCfg(DeeproboticsLite3RoughEnvCfg):
         # RL-MPC specific configuration
         # Action space: MPC weights instead of joint positions
         # Q weights: 13-dim, R weights: 12-dim
-        self.actions.joint_pos = None  # Disable joint position actions
+        self.actions = RLMPCActionsCfg()
         
         # Update observations for RL-MPC
         self.observations = RLMPCObservationsCfg()
