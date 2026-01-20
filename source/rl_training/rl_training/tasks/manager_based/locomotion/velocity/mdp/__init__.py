@@ -19,3 +19,5 @@ from .curriculums import *  # noqa: F401, F403
 from .events import *  # noqa: F401, F403
 from .observations import *  # noqa: F401, F403
 from .rewards import *  # noqa: F401, F403
+from .actions_mpc import MPCWeightsAction, MPCWeightsActionCfg  # noqa: F401
+from .mpc_controller import MPCControllerWrapper, MPC_AVAILABLE  # noqa: F401

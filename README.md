@@ -107,6 +107,42 @@ python scripts/reinforcement_learning/rsl_rl/play.py --task=Rough-Deeprobotics-M
 * Play on specific folder or checkpoint, add `--load_run run_folder_name --checkpoint model.pt`
 * Resume training from folder or checkpoint, add `--resume --load_run run_folder_name --checkpoint model.pt`
 
+## RL-MPC Training (Experimental)
+
+Train RL policy that outputs MPC weights for Lite3:
+
+```bash
+# Train RL-MPC
+python scripts/reinforcement_learning/rsl_rl/train.py --task=RLMPC-Deeprobotics-Lite3-v0 --headless
+
+# Play
+python scripts/reinforcement_learning/rsl_rl/play.py --task=RLMPC-Deeprobotics-Lite3-v0 --num_envs=10
+```
+
+### Prerequisites for RL-MPC
+
+1. Install the MPC controller Python bindings:
+```bash
+git clone https://github.com/w1649n/A1-QP-MPC-Controller.git
+cd A1-QP-MPC-Controller
+pip install -e .
+```
+
+### RL-MPC Architecture
+
+The RL-MPC approach uses a hierarchical control structure:
+- **High-level RL Policy**: Outputs MPC weight parameters (25-dim)
+  - Q weights (13-dim): State cost weights
+  - R weights (12-dim): Control effort weights
+- **Low-level MPC Controller**: Computes optimal ground reaction forces
+- **Inverse Dynamics**: Converts GRF to joint torques
+
+This architecture combines the learning capability of RL with the physical consistency of MPC.
+
+### References
+- RL-MPC Architecture: [silvery107/rl-mpc-locomotion](https://github.com/silvery107/rl-mpc-locomotion)
+- QP-MPC Controller: [w1649n/A1-QP-MPC-Controller](https://github.com/w1649n/A1-QP-MPC-Controller)
+
 ## Trained Results
 You can download our trained examples for reference of the training process. This should be expected if you run our training process properly. [M20](https://drive.google.com/file/d/1PAGIHOI6Lsge_JA9kU3w7RU-GyqXybob/view?usp=drive_link) and [Lite3](https://drive.google.com/file/d/1EgCVQA552x3YiaRhPRv675TSd01yqF0c/view?usp=drive_link)
 

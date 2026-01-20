@@ -34,3 +34,13 @@ gym.register(
     },
 )
 
+gym.register(
+    id="RLMPC-Deeprobotics-Lite3-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.rl_mpc_env_cfg:DeeproboticsLite3RLMPCEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_mpc_ppo_cfg:DeeproboticsLite3RLMPCPPORunnerCfg",
+    },
+)
+
