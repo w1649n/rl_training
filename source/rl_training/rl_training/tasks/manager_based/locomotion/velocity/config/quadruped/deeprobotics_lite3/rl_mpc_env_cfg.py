@@ -164,6 +164,7 @@ class DeeproboticsLite3RLMPCEnvCfg(DeeproboticsLite3RoughEnvCfg):
         # Adjust episode length for MPC training
         self.episode_length_s = 10.0
         
-        # Disable zero weight rewards
-        if self.__class__.__name__ == "DeeproboticsLite3RLMPCEnvCfg":
+        # Disable zero weight rewards for this configuration only
+        # (not for derived classes that may override this)
+        if type(self).__name__ == "DeeproboticsLite3RLMPCEnvCfg":
             self.disable_zero_weight_rewards()

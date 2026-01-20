@@ -11,10 +11,14 @@ from __future__ import annotations
 
 import torch
 import numpy as np
+import logging
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedEnv
+
+# Setup logger
+logger = logging.getLogger(__name__)
 
 # Try to import the MPC controller Python bindings
 try:
@@ -22,7 +26,10 @@ try:
     MPC_AVAILABLE = True
 except ImportError:
     MPC_AVAILABLE = False
-    print("Warning: mpc_controller not found. Install from A1-QP-MPC-Controller repository.")
+    logger.warning(
+        "mpc_controller module not found. Install from A1-QP-MPC-Controller repository: "
+        "https://github.com/w1649n/A1-QP-MPC-Controller"
+    )
 
 
 class MPCControllerWrapper:
@@ -68,13 +75,6 @@ class MPCControllerWrapper:
         
         # Output buffer for ground reaction forces
         self.grf = torch.zeros(num_envs, 12, device=device)
-        
-        # Lite3 foot positions in body frame (nominal stance)
-        self.nominal_foot_pos = np.array([
-            [ 0.17,  0.17, -0.17, -0.17],  # x: FL, FR, RL, RR
-            [ 0.135, -0.135,  0.135, -0.135],  # y
-            [-0.35, -0.35, -0.35, -0.35]   # z (at target height)
-        ])
 
     def set_weights(
         self,
@@ -118,6 +118,11 @@ class MPCControllerWrapper:
             
         Returns:
             Ground reaction forces (num_envs, 12) in body frame
+        
+        Note:
+            The MPC solving is performed sequentially for each environment.
+            This is a limitation of the current MPC library implementation.
+            Future optimization could parallelize this if the library supports it.
         """
         # Convert to numpy for MPC solver
         root_pos_np = root_pos.cpu().numpy()

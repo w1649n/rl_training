@@ -60,6 +60,14 @@ class MPCWeightsAction(ActionTerm):
         # Weight bounds for safety
         self.q_weight_bounds = cfg.q_weight_bounds
         self.r_weight_bounds = cfg.r_weight_bounds
+        
+        # Precompute scaling constants for R weights (log scale)
+        # R weights use log scale because they span multiple orders of magnitude (1e-7 to 1e-3)
+        # Formula: r = exp((a+1)/2 * (log(r_max) - log(r_min)) + log(r_min))
+        # where a is the action in [-1, 1]
+        self.log_r_min = torch.tensor(cfg.r_weight_bounds[0], device=self._device).log()
+        self.log_r_max = torch.tensor(cfg.r_weight_bounds[1], device=self._device).log()
+        self.log_r_range = self.log_r_max - self.log_r_min
 
     @property
     def action_dim(self) -> int:
@@ -77,7 +85,8 @@ class MPCWeightsAction(ActionTerm):
         """Process raw actions to MPC weights.
         
         The network outputs normalized actions in [-1, 1], which are scaled
-        to appropriate MPC weight ranges.
+        to appropriate MPC weight ranges. Q weights use linear scaling while
+        R weights use logarithmic scaling due to their wide range.
         """
         self._raw_actions = actions.clone()
         
@@ -85,15 +94,14 @@ class MPCWeightsAction(ActionTerm):
         q_actions = actions[:, :self.q_weights_dim]
         r_actions = actions[:, self.q_weights_dim:]
         
-        # Scale Q weights: action in [-1, 1] -> weight in bounds
+        # Scale Q weights: linear mapping from [-1, 1] to [q_min, q_max]
         q_min, q_max = self.q_weight_bounds
         q_weights = (q_actions + 1.0) / 2.0 * (q_max - q_min) + q_min
         
-        # Scale R weights: action in [-1, 1] -> weight in bounds (log scale)
-        r_min, r_max = self.r_weight_bounds
+        # Scale R weights: logarithmic mapping from [-1, 1] to [r_min, r_max]
+        # Using precomputed log constants for efficiency
         r_weights = torch.exp(
-            (r_actions + 1.0) / 2.0 * (torch.log(torch.tensor(r_max)) - torch.log(torch.tensor(r_min))) 
-            + torch.log(torch.tensor(r_min))
+            (r_actions + 1.0) / 2.0 * self.log_r_range + self.log_r_min
         )
         
         self._processed_actions = torch.cat([q_weights, r_weights], dim=-1)
